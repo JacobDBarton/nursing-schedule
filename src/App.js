@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import * as React from "react";
+import Button from "@mui/material/Button";
 import ShiftsTable from "./components/ShiftsTable";
+import ShiftAssignmentDialog from "./components/ShiftAssignmentDialog";
 
 const API_URL = "http://localhost:9001";
 
 const App = () => {
+  const [modalOpen, setModalOpen] = useState(false);
   const [shiftsData, setShiftsData] = useState([]);
   const [nursesData, setNursesData] = useState([]);
 
@@ -28,9 +30,9 @@ const App = () => {
   // use the useMemo hook to prevent creating a new shifts array on every render
   const shifts = useMemo(
     () =>
-      shiftsData.map((shiftData) => {
+      shiftsData?.map((shiftData) => {
         // find the nurse assigned to the shift
-        const assignedNurse = nursesData.find(
+        const assignedNurse = nursesData?.find(
           (nurse) => nurse.id === shiftData.nurse_id
         );
         // if nurse is assigned to shift, use the first & last name in the table
@@ -43,6 +45,7 @@ const App = () => {
         }
         // return each shift in the correct format for the ShiftsTable component
         return {
+          id: shiftData.id,
           name: shiftData.name,
           start: shiftData.start,
           end: shiftData.end,
@@ -53,7 +56,21 @@ const App = () => {
     [nursesData, shiftsData]
   );
 
-  return <ShiftsTable shifts={shifts} />;
+  return (
+    <>
+      <Button variant="outlined" onClick={() => setModalOpen(true)}>
+        Set Shift Assignment
+      </Button>
+      {modalOpen ? (
+        <ShiftAssignmentDialog
+          shifts={shifts}
+          nurses={nursesData}
+          onCloseSignal={() => setModalOpen(false)}
+        />
+      ) : null}
+      <ShiftsTable shifts={shifts} />
+    </>
+  );
 };
 
 export default App;
