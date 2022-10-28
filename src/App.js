@@ -15,19 +15,25 @@ const App = () => {
     const getShifts = async () => {
       const response = await fetch(`${API_URL}/shifts`);
       const data = await response.json();
-      setShiftsData(data);
+      // only set shifts data if request is successful
+      if (response.status === 200) {
+        setShiftsData(data);
+      }
     };
     // get the nurses data from the API
     const getNurses = async () => {
       const response = await fetch(`${API_URL}/nurses`);
       const data = await response.json();
-      setNursesData(data);
+      // only set nurses data if request is successful
+      if (response.status === 200) {
+        setNursesData(data);
+      }
     };
     getShifts();
     getNurses();
   }, []);
 
-  // use the useMemo hook to prevent creating a new shifts array on every render
+  // use the useMemo hook to prevent creating a new shifts array on every render, only if shifts/nurses data changes
   const shifts = useMemo(
     () =>
       shiftsData?.map((shiftData) => {
@@ -66,6 +72,21 @@ const App = () => {
           shifts={shifts}
           nurses={nursesData}
           onCloseSignal={() => setModalOpen(false)}
+          onAssignment={({ shiftId, nurseId }) => {
+            // update shifts state with new nurse assignment
+            setShiftsData(
+              shiftsData.map((shift) => {
+                // update the nurse id for the shift they were assigned to
+                if (shift.id === shiftId) {
+                  return {
+                    ...shift,
+                    nurse_id: nurseId,
+                  };
+                }
+                return shift;
+              })
+            );
+          }}
         />
       ) : null}
       <ShiftsTable shifts={shifts} />

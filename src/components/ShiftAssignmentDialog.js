@@ -10,8 +10,10 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 
+const API_URL = "http://localhost:9001";
+
 export default function ShiftAssignmentDialog(props) {
-  const { shifts = [], nurses = [], onCloseSignal } = props;
+  const { shifts = [], nurses = [], onCloseSignal, onAssignment } = props;
   const [shiftId, setShiftId] = useState("");
   const [nurseId, setNurseId] = useState("");
 
@@ -21,6 +23,20 @@ export default function ShiftAssignmentDialog(props) {
 
   const handleNurseChange = (event) => {
     setNurseId(event.target.value);
+  };
+
+  const handleSaveAssignment = async () => {
+    // update the shifts data in the App component when a nurse is assigned to a shift
+    onAssignment({ shiftId, nurseId });
+    // make the request to update the shift with the selected nurse
+    // NOTE: can't figure out why this keeps giving me a 500 error, the server
+    // doesn't like something about this
+    await fetch(`${API_URL}/shifts/${shiftId}`, {
+      method: "PUT",
+      body: JSON.stringify({ nurseID: nurseId }),
+    });
+    // if request is successful, close the dialog
+    onCloseSignal();
   };
 
   return (
@@ -64,7 +80,7 @@ export default function ShiftAssignmentDialog(props) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCloseSignal} disabled={!shiftId}>
+        <Button onClick={handleSaveAssignment} disabled={!shiftId}>
           Save Assignment
         </Button>
       </DialogActions>
